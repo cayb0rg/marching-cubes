@@ -85,6 +85,23 @@ public class Main {
 		    GL.createCapabilities();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            // Draw wireframe cubes around each voxel
+            for (int i = 0; i < resolution; i++) {
+                for (int j = 0; j < resolution; j++) {
+                    for (int k = 0; k < resolution; k++) {
+                        // Calculate voxel position
+                        float voxelSize = 1.0f;
+                        float voxelSpacing = 1.0f; // Adjust as needed
+                        float xPos = i * voxelSpacing;
+                        float yPos = j * voxelSpacing;
+                        float zPos = k * voxelSpacing;
+
+                        // Draw wireframe cube
+                        drawWireframeCube(xPos, yPos, zPos, voxelSize);
+                    }
+                }
+            }
+
             if (x < resolution - 1) {
                 x++;
             } else if (y < resolution - 1) {
@@ -138,5 +155,50 @@ public class Main {
         mesh.cleanup();
 
         glfwTerminate();
+    }
+
+    // Method to draw wireframe cube
+    private static void drawWireframeCube(float x, float y, float z, float size) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Render in wireframe mode
+        glBegin(GL_QUADS);
+
+        // Front face
+        glVertex3f(x - size / 2, y - size / 2, z + size / 2);
+        glVertex3f(x + size / 2, y - size / 2, z + size / 2);
+        glVertex3f(x + size / 2, y + size / 2, z + size / 2);
+        glVertex3f(x - size / 2, y + size / 2, z + size / 2);
+
+        // Back face
+        glVertex3f(x - size / 2, y - size / 2, z - size / 2);
+        glVertex3f(x + size / 2, y - size / 2, z - size / 2);
+        glVertex3f(x + size / 2, y + size / 2, z - size / 2);
+        glVertex3f(x - size / 2, y + size / 2, z - size / 2);
+
+        // Top face
+        glVertex3f(x - size / 2, y + size / 2, z - size / 2);
+        glVertex3f(x + size / 2, y + size / 2, z - size / 2);
+        glVertex3f(x + size / 2, y + size / 2, z + size / 2);
+        glVertex3f(x - size / 2, y + size / 2, z + size / 2);
+
+        // Bottom face
+        glVertex3f(x - size / 2, y - size / 2, z - size / 2);
+        glVertex3f(x + size / 2, y - size / 2, z - size / 2);
+        glVertex3f(x + size / 2, y - size / 2, z + size / 2);
+        glVertex3f(x - size / 2, y - size / 2, z + size / 2);
+
+        // Left face
+        glVertex3f(x - size / 2, y - size / 2, z - size / 2);
+        glVertex3f(x - size / 2, y - size / 2, z + size / 2);
+        glVertex3f(x - size / 2, y + size / 2, z + size / 2);
+        glVertex3f(x - size / 2, y + size / 2, z - size / 2);
+
+        // Right face
+        glVertex3f(x + size / 2, y - size / 2, z - size / 2);
+        glVertex3f(x + size / 2, y - size / 2, z + size / 2);
+        glVertex3f(x + size / 2, y + size / 2, z + size / 2);
+        glVertex3f(x + size / 2, y + size / 2, z - size / 2);
+
+        glEnd();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Restore to fill mode
     }
 }
