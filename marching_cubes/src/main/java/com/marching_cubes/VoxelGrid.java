@@ -384,6 +384,6 @@ public class VoxelGrid {
     public static void main(String []args) {
         VoxelGrid voxel_grid = new VoxelGrid(10);
         ArrayList<Vector3f> positions = voxel_grid.create_grid();
-        System.out.println(voxel_grid.voxel_grid);
+        System.out.println(positions);
     }
 }

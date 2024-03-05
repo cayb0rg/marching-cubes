@@ -17,21 +17,16 @@ import org.lwjgl.BufferUtils;
 public class Mesh {
     public float[] vertices;
     public float[] colors;
-    public int[] indices;
+    // public int[] indices;
 
-    public int shaderProgram;
-    public long window;
-    public Camera camera;
     public int vao;
     public int posVboId = -1;
     public int colorVboId = -1;
     public int idxVboId = -1;
 
-    public Mesh(float[] vertices, int[] indices, long window) {
+    public Mesh(float[] vertices, long window, Camera camera, int shaderProgram) {
         this.vertices = vertices;
-        this.indices = indices;
-
-        shaderProgram = loadShader();
+        // this.indices = indices;
 
         // Generate VAO
         vao = generateVAO();
@@ -46,40 +41,14 @@ public class Mesh {
             // Enable the color attribute
             glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
         }
-        if (indices.length > 0) {
-            idxVboId = generateVBOInt(indices);
-        }
+        // if (indices.length > 0) {
+        //     idxVboId = generateVBOInt(indices);
+        // }
 
         glBindVertexArray(0);
-
-        Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
-        Vector3f position = new Vector3f(3.0f, 3.0f, 3.0f);
-        Vector3f target = new Vector3f(0.0f, 0.0f, 0.0f);
-        float aspect = 800.0f / 600.0f;
-        float fov = (float) Math.toRadians(45.0f);
-        float near = 0.1f;
-        float far = 100.0f;
-        camera = new Camera(position, target, up, fov, aspect, near, far, window);
-
-        // Initialize view and projection matrices
-        int viewMatrixLocation = glGetUniformLocation(shaderProgram, "view");
-        System.out.println("View matrix location: " + viewMatrixLocation);
-        Matrix4f viewMatrix = camera.getViewMatrix();
-        glUniformMatrix4fv(viewMatrixLocation, false, viewMatrix.get(new float[16]));
-
-        System.out.println("Set view matrix successfully!");
-        checkGLError();
-
-        int projectionMatrixLocation = glGetUniformLocation(shaderProgram, "projection");
-        System.out.println("Projection matrix location: " + projectionMatrixLocation);
-        Matrix4f projectionMatrix = camera.getProjectionMatrix();
-        glUniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix.get(new float[16]));
-
-        System.out.println("Set projection matrix successfully!");
-        checkGLError();
     }
 
-    public void render() {
+    public void render(int shaderProgram) {
         glUseProgram(shaderProgram);
         // Bind VAO
         glBindVertexArray(vao);
@@ -87,20 +56,6 @@ public class Mesh {
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
-        // Set the camera position
-        if (camera.mouseDragging) {
-            int viewMatrixLocation = glGetUniformLocation(shaderProgram, "view");
-            Matrix4f viewMatrix = camera.getViewMatrix();
-            glUniformMatrix4fv(viewMatrixLocation, false, viewMatrix.get(new float[16]));
-            checkGLError();
-
-            int projectionMatrixLocation = glGetUniformLocation(shaderProgram, "projection");
-            Matrix4f projectionMatrix = camera.getProjectionMatrix();
-            glUniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix.get(new float[16]));
-            checkGLError();
-
-            System.out.println("Set view and projection matrices successfully!");
-        }
         // Calculate translation for each cube
         float x = 0 * 2.0f; // Adjust as needed
         float y = 0.0f;     // Adjust as needed
