@@ -292,36 +292,37 @@ public class VoxelGrid {
         {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
     };
 
-    public ArrayList<Float> voxel_grid; // 1-dimensional representation of a 3-dimensional grid
+    private ArrayList<Float> voxel_grid; // 1-dimensional representation of a 3-dimensional grid
 
-    public int resolution;
+    private int resolution;
+
+    public static final int SURFACE_LEVEL = 100;
 
     public VoxelGrid(int resolution) {
-        voxel_grid = new ArrayList<Float>(resolution * resolution * resolution);
+        this.voxel_grid = new ArrayList<Float>();
+        System.out.println("voxel_grid: " + this.voxel_grid);
 
         this.resolution = resolution;
 
-        int i = 0;
         for (int z = 0; z < resolution; z++) {
             for (int y = 0; y < resolution; y++) {
                 for (int x = 0; x < resolution; x++) {
-                    voxel_grid.set(i, scalar_field((float)x, (float)y, (float)z));
-                    i++;
+                    this.voxel_grid.add(scalar_field((float)x, (float)y, (float)z));
                 }
             }
         }
     }
 
     public float read(int x, int y, int z) {
-        return voxel_grid.get(x + y * resolution + z * resolution * resolution);
+        return this.voxel_grid.get(x + y * resolution + z * resolution * resolution);
     }
 
     public void write(int x, int y, int z, float value) {
-        voxel_grid.set(x + y * resolution + z * resolution * resolution, value);
+        this.voxel_grid.set(x + y * resolution + z * resolution * resolution, value);
     }
 
     public void push(float value) {
-        voxel_grid.add(value);
+        this.voxel_grid.add(value);
     }
 
     public static float scalar_field(float x, float y, float z) {
@@ -329,10 +330,10 @@ public class VoxelGrid {
     }
 
     public void create_grid() {
-        for (int z = 0; z < this.resolution; z++) {
-            for (int y = 0; y < this.resolution; y++) {
-                for (int x = 0; x < this.resolution; x++) {
-                    ArrayList<Vector3f> positions = new ArrayList<Vector3f>();
+        ArrayList<Vector3f> positions = new ArrayList<Vector3f>();
+        for (int z = 0; z < this.resolution - 1; z++) {
+            for (int y = 0; y < this.resolution - 1; y++) {
+                for (int x = 0; x < this.resolution - 1; x++) {
                     march_cube(x, y, z,
                         this,
                         positions
@@ -340,17 +341,19 @@ public class VoxelGrid {
                 }
             }
         }
+        // do something with positions
+        System.out.println(positions);
     }
 
     public static void march_cube(int x, int y, int z, VoxelGrid voxel_grid, ArrayList<Vector3f> positions) {
         int[] triangulation = get_triangulation(x, y, z, voxel_grid);
 
         for (int i = 0; i < triangulation.length; i++) {
-            if (i < 0) {
+            if (triangulation[i] < 0) {
                 break;
             }
 
-            int[] point_indices = EDGES[i];
+            int[] point_indices = EDGES[triangulation[i]];
             int[] point_1 = POINTS[point_indices[0]];
             int[] point_2 = POINTS[point_indices[1]];
 
@@ -367,17 +370,19 @@ public class VoxelGrid {
     }
 
     public static int[] get_triangulation(int x, int y, int z, VoxelGrid voxel_grid) {
-        int cube_index = 0b00000000;
+        int cube_index = 0;
         // each bit represents whether that corner should be inside or outside the mesh
-        cube_index |= (voxel_grid.read(x,       y,      z       ) < 0 ? 1 : 0) << 0;
-        cube_index |= (voxel_grid.read(x,       y,      z + 1   ) < 0 ? 1 : 0) << 1;
-        cube_index |= (voxel_grid.read(x + 1,   y,      z + 1   ) < 0 ? 1 : 0) << 2;
-        cube_index |= (voxel_grid.read(x + 1,   y,      z       ) < 0 ? 1 : 0) << 3;
-        cube_index |= (voxel_grid.read(x,       y + 1,  z       ) < 0 ? 1 : 0) << 4;
-        cube_index |= (voxel_grid.read(x,       y + 1,  z + 1   ) < 0 ? 1 : 0) << 5;
-        cube_index |= (voxel_grid.read(x + 1,   y + 1,  z + 1   ) < 0 ? 1 : 0) << 6;
-        cube_index |= (voxel_grid.read(x + 1,   y + 1,  z       ) < 0 ? 1 : 0) << 7;
-
+        for (int i = 0; i < 8; i++) {
+            if (voxel_grid.read(x + POINTS[i][0], y + POINTS[i][1], z + POINTS[i][2]) < SURFACE_LEVEL) {
+                cube_index |= 1 << i;
+            }
+        }
         return TRIANGULATIONS[cube_index];
+    }
+
+    public static void main(String []args) {
+        VoxelGrid voxel_grid = new VoxelGrid(10);
+        voxel_grid.create_grid();
+        System.out.println(voxel_grid.voxel_grid);
     }
 }
