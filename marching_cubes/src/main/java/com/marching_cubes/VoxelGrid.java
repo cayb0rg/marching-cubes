@@ -329,7 +329,7 @@ public class VoxelGrid {
         return (x * x + y * y + z * z) - 0.75f*0.75f;
     }
 
-    public void create_grid() {
+    public ArrayList<Vector3f> create_grid() {
         ArrayList<Vector3f> positions = new ArrayList<Vector3f>();
         for (int z = 0; z < this.resolution - 1; z++) {
             for (int y = 0; y < this.resolution - 1; y++) {
@@ -343,6 +343,7 @@ public class VoxelGrid {
         }
         // do something with positions
         System.out.println(positions);
+        return positions;
     }
 
     public static void march_cube(int x, int y, int z, VoxelGrid voxel_grid, ArrayList<Vector3f> positions) {
@@ -382,7 +383,7 @@ public class VoxelGrid {
 
     public static void main(String []args) {
         VoxelGrid voxel_grid = new VoxelGrid(10);
-        voxel_grid.create_grid();
+        ArrayList<Vector3f> positions = voxel_grid.create_grid();
         System.out.println(voxel_grid.voxel_grid);
     }
 }

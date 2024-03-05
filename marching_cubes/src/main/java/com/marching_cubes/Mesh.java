@@ -1,134 +1,56 @@
 package com.marching_cubes;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.BufferUtils;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
+import static com.marching_cubes.ShaderUtils.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15.glBindBuffer;
+import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.opengl.GL31C.glGetActiveUniformName;
-import java.io.IOException;
+
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
-import static org.lwjgl.system.MemoryStack.*;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
 
-import static com.marching_cubes.ShaderUtils.*;
+public class Mesh {
+    public float[] vertices;
+    public float[] colors;
+    public int[] indices;
 
-public class CubeRenderer {
-    // Vertices for a unit cube centered at the origin
-    private static final float[] positions = new float[] {
-        // VO
-        -0.5f,  0.5f,  0.5f,
-        // V1
-        -0.5f, -0.5f,  0.5f,
-        // V2
-        0.5f, -0.5f,  0.5f,
-        // V3
-         0.5f,  0.5f,  0.5f,
-        // V4
-        -0.5f,  0.5f, -0.5f,
-        // V5
-         0.5f,  0.5f, -0.5f,
-        // V6
-        -0.5f, -0.5f, -0.5f,
-        // V7
-         0.5f, -0.5f, -0.5f,
-    };
+    public int shaderProgram;
+    public long window;
+    public Camera camera;
+    public int vao;
+    public int posVboId = -1;
+    public int colorVboId = -1;
+    public int idxVboId = -1;
 
-    private static final float[] colors = new float[]{
-        0.5f, 0.0f, 0.0f,
-        0.0f, 0.5f, 0.0f,
-        0.0f, 0.0f, 0.5f,
-        0.0f, 0.5f, 0.5f,
-        0.5f, 0.0f, 0.0f,
-        0.0f, 0.5f, 0.0f,
-        0.0f, 0.0f, 0.5f,
-        0.0f, 0.5f, 0.5f,
-    };
+    public Mesh(float[] vertices, int[] indices, long window) {
+        this.vertices = vertices;
+        this.indices = indices;
 
-
-    // Indices to define triangles for rendering a cube
-    private static final int[] indices = new int[] {
-        // Front face
-        0, 1, 3, 3, 1, 2,
-        // Top Face
-        4, 0, 3, 5, 4, 3,
-        // Right face
-        3, 2, 7, 5, 3, 7,
-        // Left face
-        6, 1, 0, 6, 0, 4,
-        // Bottom face
-        2, 1, 6, 2, 6, 7,
-        // Back face
-        7, 6, 4, 7, 4, 5,
-    };
-
-    // Vertex buffer object (VBO) ID
-    private int posVboId;
-
-    private int colorVboId;
-
-    // Vertex array object (VAO) ID
-    private int vao;
-
-    // Index VBO
-    private int idxVboId;
-
-    // Shader program ID
-    private int shaderProgram;
-
-    private Camera camera;
-
-    private int element_count;
-
-    // Constructor
-    public CubeRenderer(long window) {
         shaderProgram = loadShader();
 
         // Generate VAO
         vao = generateVAO();
 
-        posVboId = generateVBOFloat(positions);
-        // Enable the position attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-
-        colorVboId = generateVBOFloat(colors);
-        // Enable the color attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
-
-        idxVboId = generateVBOInt(indices);
+        if (vertices.length > 0) {
+            posVboId = generateVBOFloat(vertices);
+            // Enable the position attribute
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+        }
+        if (colors != null && colors.length > 0) {
+            colorVboId = generateVBOFloat(colors);
+            // Enable the color attribute
+            glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+        }
+        if (indices.length > 0) {
+            idxVboId = generateVBOInt(indices);
+        }
 
         glBindVertexArray(0);
-
-        /* DEBUGGING START */
-        // Get the total number of active uniforms in the shader program
-        // int numActiveUniforms = glGetProgrami(shaderProgram, GL_ACTIVE_UNIFORMS);
-        // System.out.println("  numActiveUniforms: " + numActiveUniforms);
-
-        // // Buffer to hold uniform information
-        // IntBuffer sizeBuffer = BufferUtils.createIntBuffer(1);
-        // IntBuffer typeBuffer = BufferUtils.createIntBuffer(1);
-        // for (int i = 0; i < numActiveUniforms; i++) {
-        //     // Get information about the i-th uniform
-        //     glGetActiveUniform(shaderProgram, i, sizeBuffer, typeBuffer);
-
-        //     // Get the size and type of the uniform
-        //     int size = sizeBuffer.get(0);
-        //     int type = typeBuffer.get(0);
-
-        //     // Get the name of the uniform
-        //     String name = glGetActiveUniformName(shaderProgram, i);
-
-        //     // Print information about the uniform
-        //     System.out.println("Uniform " + i + ":");
-        //     System.out.println("  Name: " + name);
-        //     System.out.println("  Size: " + size);
-        //     System.out.println("  Type: " + type);
-        // }
-        /* DEBUGGING END */
 
         Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
         Vector3f position = new Vector3f(3.0f, 3.0f, 3.0f);
@@ -157,7 +79,6 @@ public class CubeRenderer {
         checkGLError();
     }
 
-    // Render method
     public void render() {
         glUseProgram(shaderProgram);
         // Bind VAO
@@ -215,10 +136,7 @@ public class CubeRenderer {
         System.out.println("Uploaded matrix to shader successfully!");
 
         // Render cube
-        // glDrawArrays(GL_TRIANGLES, 0, element_count);
-        checkGLError();
-        glDrawElements(GL_TRIANGLES, positions.length / 3, GL_UNSIGNED_INT, 0);
-        checkGLError();
+        glDrawArrays(GL_TRIANGLES, 0, vertices.length);
         System.out.println("Rendered cube successfully!");
 
 
@@ -235,12 +153,14 @@ public class CubeRenderer {
         glDisableVertexAttribArray(0);
         // Delete VBOs
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glDeleteBuffers(posVboId);
-        glDeleteBuffers(colorVboId);
-        glDeleteBuffers(idxVboId);
+        if (posVboId != -1)
+            glDeleteBuffers(posVboId);
+        if (colorVboId != -1)
+            glDeleteBuffers(colorVboId);
+        if (idxVboId != -1)
+            glDeleteBuffers(idxVboId);
         // Delete VAO
         glBindVertexArray(0);
         glDeleteVertexArrays(vao);
     }
 }
-
