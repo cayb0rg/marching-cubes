@@ -53,11 +53,13 @@ public class Main {
 
         // Create a shader
         int shaderProgram = loadShader();
+        checkGLError();
 
         // Initialize view and projection matrices
         int viewMatrixLocation = glGetUniformLocation(shaderProgram, "view");
         System.out.println("View matrix location: " + viewMatrixLocation);
         Matrix4f viewMatrix = camera.getViewMatrix();
+        checkGLError();
         glUniformMatrix4fv(viewMatrixLocation, false, viewMatrix.get(new float[16]));
 
         System.out.println("Set view matrix successfully!");
@@ -102,17 +104,23 @@ public class Main {
                 }
             }
 
-            if (x < resolution - 1) {
+            if (x < resolution - 2) {
                 x++;
-            } else if (y < resolution - 1) {
+            } else if (y < resolution - 2) {
                 x = 0;
                 y++;
-            } else if (z < resolution - 1) {
+            } else if (z < resolution - 2) {
                 x = 0;
                 y = 0;
                 z++;
             } else {
-                break;
+                // break; if you want to exit program
+
+                // for restarting animation
+                x = 0;
+                y = 0;
+                z = 0;
+                positions = new ArrayList<Vector3f>();
             }
 
             // run marching cubes algorithm
@@ -133,17 +141,28 @@ public class Main {
             mesh.updateColors(vertices);
 
             // Set the camera position
-            if (camera.mouseDragging) {
-                viewMatrix = camera.getViewMatrix();
-                glUniformMatrix4fv(viewMatrixLocation, false, viewMatrix.get(new float[16]));
-                checkGLError();
-
-                projectionMatrix = camera.getProjectionMatrix();
-                glUniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix.get(new float[16]));
-                checkGLError();
-
-                System.out.println("Set view and projection matrices successfully!");
+            if (camera.pressedKeys[GLFW_KEY_W]) {
+                camera.strafeLeft(0.1f);
             }
+            if (camera.pressedKeys[GLFW_KEY_S]) {
+                camera.strafeRight(0.1f);
+            }
+            if (camera.pressedKeys[GLFW_KEY_A]) {
+                camera.walkForward(0.1f);
+            }
+            if (camera.pressedKeys[GLFW_KEY_D]) {
+                camera.walkBackwards(0.1f);
+            }
+            viewMatrix = camera.getViewMatrix();
+            glUniformMatrix4fv(viewMatrixLocation, false, viewMatrix.get(new float[16]));
+            checkGLError();
+
+            projectionMatrix = camera.getProjectionMatrix();
+            glUniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix.get(new float[16]));
+            checkGLError();
+
+            // System.out.println("Set view and projection matrices successfully!");
+
             mesh.render(shaderProgram);
 
             glfwSwapBuffers(window);

@@ -300,7 +300,6 @@ public class VoxelGrid {
 
     public VoxelGrid(int resolution) {
         this.voxel_grid = new ArrayList<Float>();
-        System.out.println("voxel_grid: " + this.voxel_grid);
 
         this.resolution = resolution;
 
@@ -343,8 +342,6 @@ public class VoxelGrid {
                 }
             }
         }
-        // do something with positions
-        System.out.println(positions);
         return positions;
     }
 

@@ -1,12 +1,6 @@
 package com.marching_cubes;
 
-import static org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_LEFT;
-import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
-import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
-import static org.lwjgl.glfw.GLFW.glfwGetCursorPos;
-import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
-
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 import org.joml.Matrix4f;
@@ -24,6 +18,7 @@ public class Camera {
 
     // Mouse movement variables
     public boolean mouseDragging = false;
+    public boolean[] pressedKeys;
     private double lastX = 0.0;
     private double lastY = 0.0;
     private float yaw = 0.0f;
@@ -38,9 +33,14 @@ public class Camera {
         this.near = near;
         this.far = far;
 
+        this.pressedKeys = new boolean[GLFW_KEY_LAST];
+
         // Set up mouse callbacks
         glfwSetCursorPosCallback(window, this::mouseCallback);
         glfwSetMouseButtonCallback(window, this::mouseButtonCallback);
+
+        // Set up keyboard callbacks
+        glfwSetKeyCallback(window, this::keyCallback);
     }
 
     public Matrix4f getViewMatrix() {
@@ -68,6 +68,25 @@ public class Camera {
 
     public void setUp(Vector3f up) {
         this.up.set(up);
+    }
+
+    public void keyCallback(long window, int key, int scancode, int action, int mods) {
+        System.out.println("Key: " + key + " Action: " + action + " Mods: " + mods);
+        if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+            pressedKeys[key] = true;
+            walkForward(0.1f);
+        } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+            pressedKeys[key] = true;
+            walkBackwards(0.1f);
+        } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+            pressedKeys[key] = true;
+            strafeLeft(0.1f);
+        } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+            pressedKeys[key] = true;
+            strafeRight(0.1f);
+        } else if (action == GLFW_RELEASE) {
+            pressedKeys[key] = false;
+        }
     }
 
     public void mouseCallback(long window, double xpos, double ypos) {

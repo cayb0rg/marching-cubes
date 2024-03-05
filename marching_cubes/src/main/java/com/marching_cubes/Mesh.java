@@ -81,10 +81,10 @@ public class Mesh {
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
 
-        // Calculate translation for each cube
-        float x = 0 * 2.0f; // Adjust as needed
-        float y = 0.0f;     // Adjust as needed
-        float z = 0.0f;     // Adjust as needed
+        // Calculate translation for each vertex
+        float x = 0 * 2.0f;
+        float y = 0.0f;
+        float z = 0.0f;
 
         // Set the translation matrix
         Matrix4f translationMatrix = new Matrix4f().translate(x, y, z);
@@ -99,26 +99,17 @@ public class Mesh {
 
         // Create model matrix
         Matrix4f modelMatrix = new Matrix4f().identity().mul(translationMatrix).mul(scaleMatrix);
-        System.out.println("Model matrix: " + modelMatrix.toString());
 
-
-        System.out.println("Set translation matrix successfully!");
+        // Create buffer for model matrix
         FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
-        System.out.println("Created matrix buffer successfully!");
         modelMatrix.get(matrixBuffer);
-        System.out.println("Got matrix buffer successfully!");
 
-        // Upload the translation matrix to the shader
+        // Upload the model matrix to the shader
         int matrixLocation = glGetUniformLocation(shaderProgram, "model");
-        System.out.println("Got matrix location successfully! " + matrixLocation);
         glUniformMatrix4fv(matrixLocation, false, matrixBuffer);
-        checkGLError();
-        System.out.println("Uploaded matrix to shader successfully!");
 
         // Render cube
         glDrawArrays(GL_TRIANGLES, 0, vertices.length);
-        System.out.println("Rendered cube successfully!");
-
 
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
