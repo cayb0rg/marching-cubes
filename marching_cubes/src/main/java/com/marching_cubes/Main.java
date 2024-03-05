@@ -41,13 +41,15 @@ public class Main {
 
         // Create a camera
         Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
-        Vector3f position = new Vector3f(3.0f, 3.0f, 3.0f);
+        Vector3f position = new Vector3f(20.0f, 20.0f, 10.0f);
         Vector3f target = new Vector3f(0.0f, 0.0f, 0.0f);
         float aspect = 800.0f / 600.0f;
         float fov = (float) Math.toRadians(45.0f);
         float near = 0.1f;
         float far = 100.0f;
         Camera camera = new Camera(position, target, up, fov, aspect, near, far, window);
+        camera.yaw(-240.0f);
+        camera.pitch(-40.0f);
 
         // Create a shader
         int shaderProgram = loadShader();
@@ -111,6 +113,7 @@ public class Main {
             }
 
             mesh.updateVertices(vertices);
+            mesh.updateColors(vertices);
 
             // Set the camera position
             if (camera.mouseDragging) {

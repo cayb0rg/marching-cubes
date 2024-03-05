@@ -17,7 +17,7 @@ import org.lwjgl.BufferUtils;
 public class Mesh {
     public float[] vertices;
     public float[] colors;
-    // public int[] indices;
+    public int[] indices;
 
     public int vao;
     public int posVboId = -1;
@@ -46,6 +46,28 @@ public class Mesh {
 
         // Enable the position attribute
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+        // Unbind the VAO
+        glBindVertexArray(0);
+    }
+
+    public void updateColors(float[] colors) {
+        // Update the colors array
+        this.colors = colors;
+
+        // Bind the VAO
+        glBindVertexArray(vao);
+
+        // Delete the old VBO
+        if (colorVboId != -1) {
+            glDeleteBuffers(colorVboId);
+        }
+
+        // Create a new VBO with the updated colors
+        colorVboId = generateVBOFloat(colors);
+
+        // Enable the color attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
 
         // Unbind the VAO
         glBindVertexArray(0);

@@ -325,8 +325,10 @@ public class VoxelGrid {
         this.voxel_grid.add(value);
     }
 
+    // this function determines the shape of the mesh
     public static float scalar_field(float x, float y, float z) {
         return (x * x + y * y + z * z) - 0.75f*0.75f;
+        // return (float) (Math.sin(x) * Math.cos(y) + Math.sin(y) * Math.cos(z) + Math.sin(z) * Math.cos(x));
     }
 
     public ArrayList<Vector3f> create_grid() {

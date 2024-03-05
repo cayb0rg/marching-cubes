@@ -8,7 +8,6 @@ import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
 
 import static org.lwjgl.opengl.GL11.*;
-import org.lwjgl.opengl.GL11;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -17,7 +16,6 @@ public class Camera {
     private Vector3f position;
     private Vector3f target;
     private Vector3f up;
-
 
     private float fov; // Field of view
     private float aspect; // Aspect ratio
@@ -28,7 +26,6 @@ public class Camera {
     public boolean mouseDragging = false;
     private double lastX = 0.0;
     private double lastY = 0.0;
-    private boolean firstMouse = true;
     private float yaw = 0.0f;
     private float pitch = 0.0f;
 
@@ -44,7 +41,6 @@ public class Camera {
         // Set up mouse callbacks
         glfwSetCursorPosCallback(window, this::mouseCallback);
         glfwSetMouseButtonCallback(window, this::mouseButtonCallback);
-
     }
 
     public Matrix4f getViewMatrix() {
@@ -52,7 +48,7 @@ public class Camera {
         Matrix4f view = new Matrix4f()
             .rotate((float) Math.toRadians(pitch), new Vector3f(1.0f, 0.0f, 0.0f))
             .rotate((float) Math.toRadians(yaw), new Vector3f(0.0f, 1.0f, 0.0f))
-            .translate(new Vector3f(0.0f, 0.0f, -3.0f));
+            .translate(position.x, position.y, position.z);
 
         return view;
         // return new Matrix4f().lookAt(position, target, up);
