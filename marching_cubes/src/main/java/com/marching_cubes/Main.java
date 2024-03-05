@@ -3,6 +3,7 @@ package com.marching_cubes;
 import org.lwjgl.opengl.GL;
 
 import static com.marching_cubes.ShaderUtils.*;
+import static com.marching_cubes.VoxelGrid.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
@@ -13,6 +14,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public class Main {
+    public static int resolution = 10;
+
     public static void main(String[] args) {
         if (!glfwInit()) {
             System.exit(1);
@@ -68,21 +71,46 @@ public class Main {
 
         // create a voxel grid with resolution 10
         VoxelGrid voxel_grid = new VoxelGrid(10);
-        // run marching cubes algorithm
-        ArrayList<Vector3f> positions = voxel_grid.create_grid();
-        // convert positions to float array
-        float[] vertices = new float[positions.size() * 3];
-        for (int i = 0; i < positions.size(); i++) {
-            vertices[i * 3] = positions.get(i).x;
-            vertices[i * 3 + 1] = positions.get(i).y;
-            vertices[i * 3 + 2] = positions.get(i).z;
-        }
-        Mesh mesh = new Mesh(vertices, window, camera, shaderProgram);
+        Mesh mesh = new Mesh();
+        ArrayList<Vector3f> positions = new ArrayList<Vector3f>();
+
+        int x = 0;
+        int y = 0;
+        int z = 0;
 
         // MAIN LOOP
         while (!glfwWindowShouldClose(window)) {
 		    GL.createCapabilities();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            if (x < resolution - 1) {
+                x++;
+            } else if (y < resolution - 1) {
+                x = 0;
+                y++;
+            } else if (z < resolution - 1) {
+                x = 0;
+                y = 0;
+                z++;
+            } else {
+                break;
+            }
+
+            // run marching cubes algorithm
+            march_cube(x, y, z,
+                voxel_grid,
+                positions
+            );
+
+            // convert positions to float array
+            float[] vertices = new float[positions.size() * 3];
+            for (int i = 0; i < positions.size(); i++) {
+                vertices[i * 3] = positions.get(i).x;
+                vertices[i * 3 + 1] = positions.get(i).y;
+                vertices[i * 3 + 2] = positions.get(i).z;
+            }
+
+            mesh.updateVertices(vertices);
 
             // Set the camera position
             if (camera.mouseDragging) {

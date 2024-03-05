@@ -24,27 +24,30 @@ public class Mesh {
     public int colorVboId = -1;
     public int idxVboId = -1;
 
-    public Mesh(float[] vertices, long window, Camera camera, int shaderProgram) {
-        this.vertices = vertices;
-        // this.indices = indices;
-
+    public Mesh() {
         // Generate VAO
         vao = generateVAO();
+    }
 
-        if (vertices.length > 0) {
-            posVboId = generateVBOFloat(vertices);
-            // Enable the position attribute
-            glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-        }
-        if (colors != null && colors.length > 0) {
-            colorVboId = generateVBOFloat(colors);
-            // Enable the color attribute
-            glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
-        }
-        // if (indices.length > 0) {
-        //     idxVboId = generateVBOInt(indices);
-        // }
+    public void updateVertices(float[] newVertices) {
+        // Update the vertices array
+        this.vertices = newVertices;
 
+        // Bind the VAO
+        glBindVertexArray(vao);
+
+        // Delete the old VBO
+        if (posVboId != -1) {
+            glDeleteBuffers(posVboId);
+        }
+
+        // Create a new VBO with the updated vertices
+        posVboId = generateVBOFloat(vertices);
+
+        // Enable the position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+        // Unbind the VAO
         glBindVertexArray(0);
     }
 
