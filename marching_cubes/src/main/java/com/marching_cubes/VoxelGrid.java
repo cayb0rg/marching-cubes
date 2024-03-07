@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.joml.Vector3f;
 
+/* Marching Cube Algorithm */
 public class VoxelGrid {
     // pairs up an index from 0 to 7 to a point on the cube
     public static final int[][] POINTS = {
@@ -303,6 +304,8 @@ public class VoxelGrid {
 
         this.resolution = resolution;
 
+        // this is where the shape of the mesh is determined
+        // so the output from perlin noise, worley noise, WFC etc. goes here
         for (int z = 0; z < resolution; z++) {
             for (int y = 0; y < resolution; y++) {
                 for (int x = 0; x < resolution; x++) {
@@ -320,16 +323,13 @@ public class VoxelGrid {
         this.voxel_grid.set(x + y * resolution + z * resolution * resolution, value);
     }
 
-    public void push(float value) {
-        this.voxel_grid.add(value);
-    }
-
     // this function determines the shape of the mesh
     public static float scalar_field(float x, float y, float z) {
         return (x * x + y * y + z * z) - 0.75f*0.75f;
         // return (float) (Math.sin(x) * Math.cos(y) + Math.sin(y) * Math.cos(z) + Math.sin(z) * Math.cos(x));
     }
 
+    // run the marching cubes algorithm for the entire grid (batch mode)
     public ArrayList<Vector3f> create_grid() {
         ArrayList<Vector3f> positions = new ArrayList<Vector3f>();
         for (int z = 0; z < this.resolution - 1; z++) {
@@ -345,6 +345,8 @@ public class VoxelGrid {
         return positions;
     }
 
+    // takes a vertex position and a voxel grid and array of vertex positions
+    // and appends the new positions to the array
     public static void march_cube(int x, int y, int z, VoxelGrid voxel_grid, ArrayList<Vector3f> positions) {
         int[] triangulation = get_triangulation(x, y, z, voxel_grid);
 
@@ -369,6 +371,8 @@ public class VoxelGrid {
         }
     }
 
+    // takes a vertex position and a voxel grid and returns a list of vertex positions to render
+    // using the triangulation table
     public static int[] get_triangulation(int x, int y, int z, VoxelGrid voxel_grid) {
         int cube_index = 0;
         // each bit represents whether that corner should be inside or outside the mesh
@@ -380,9 +384,19 @@ public class VoxelGrid {
         return TRIANGULATIONS[cube_index];
     }
 
-    public static void main(String []args) {
-        VoxelGrid voxel_grid = new VoxelGrid(10);
-        ArrayList<Vector3f> positions = voxel_grid.create_grid();
-        System.out.println(positions);
+    // Tests the VoxelGrid class
+    // Outputs the time it takes to run just the marching cubes algorithm at various resolutions
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            System.out.println("Usage: java VoxelGrid <resolution>");
+            return;
+        }
+        String input = args[0];
+        int res = Integer.parseInt(input);
+        long start = System.nanoTime();
+        VoxelGrid voxel_grid = new VoxelGrid(res);
+        voxel_grid.create_grid();
+        long end = System.nanoTime();
+        System.out.println("Time (s): " + (end - start) / 1000000000.0 + "s");
     }
 }

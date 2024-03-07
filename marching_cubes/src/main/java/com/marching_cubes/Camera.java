@@ -86,6 +86,8 @@ public class Camera {
             strafeRight(0.1f);
         } else if (action == GLFW_RELEASE) {
             pressedKeys[key] = false;
+        } else if (key == GLFW_KEY_ESCAPE) {
+            glfwSetWindowShouldClose(window, true);
         }
     }
 

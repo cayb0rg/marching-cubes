@@ -46,18 +46,14 @@ public class ShaderUtils {
             // Load and compile vertex shader
             glShaderSource(vertexShader, vertexShaderSource);
             glCompileShader(vertexShader);
-            checkGLError();
-            String vertexCompileLog = glGetShaderInfoLog(vertexShader);
-            System.out.println("Vertex shader compilation log:\n" + vertexCompileLog);
+            // String vertexCompileLog = glGetShaderInfoLog(vertexShader);
+            // System.out.println("Vertex shader compilation log:\n" + vertexCompileLog);
 
             // Load and compile fragment shader
             glShaderSource(fragmentShader, fragmentShaderSource);
             glCompileShader(fragmentShader);
-            checkGLError();
-            String fragmentCompileLog = glGetShaderInfoLog(fragmentShader);
-            System.out.println("Fragment shader compilation log:\n" + fragmentCompileLog);
-
-            System.out.println("Compiled shaders successfully!");
+            // String fragmentCompileLog = glGetShaderInfoLog(fragmentShader);
+            // System.out.println("Fragment shader compilation log:\n" + fragmentCompileLog);
         } catch (IOException e) {
             e.printStackTrace();
         }

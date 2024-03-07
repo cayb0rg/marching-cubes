@@ -9,6 +9,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -17,6 +18,18 @@ public class Main {
     public static int resolution = 10;
 
     public static void main(String[] args) {
+
+        System.out.println("Please choose an option:\n 1. Real-time marching cubes: Generate shapes on-the-fly and display them in OpenGL (slow). \n 2. Precomputed marching cubes: Compute shapes offline, then display them in OpenGL (fast).");
+        Scanner reader = new Scanner(System.in);
+        int option = reader.nextInt();
+
+        while (option != 1 && option != 2) {
+            System.out.println("Invalid option. Please choose an option:\n 1. Run marching cubes algorithm cube by cube. \n 2. Run marching cubes algorithm in batch mode.");
+            option = reader.nextInt();
+        }
+
+        reader.close();
+
         if (!glfwInit()) {
             System.exit(1);
         }
@@ -53,34 +66,42 @@ public class Main {
 
         // Create a shader
         int shaderProgram = loadShader();
-        checkGLError();
 
         // Initialize view and projection matrices
         int viewMatrixLocation = glGetUniformLocation(shaderProgram, "view");
-        System.out.println("View matrix location: " + viewMatrixLocation);
         Matrix4f viewMatrix = camera.getViewMatrix();
-        checkGLError();
         glUniformMatrix4fv(viewMatrixLocation, false, viewMatrix.get(new float[16]));
 
-        System.out.println("Set view matrix successfully!");
-        checkGLError();
-
         int projectionMatrixLocation = glGetUniformLocation(shaderProgram, "projection");
-        System.out.println("Projection matrix location: " + projectionMatrixLocation);
         Matrix4f projectionMatrix = camera.getProjectionMatrix();
         glUniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix.get(new float[16]));
-
-        System.out.println("Set projection matrix successfully!");
-        checkGLError();
 
         // create a voxel grid with resolution 10
         VoxelGrid voxel_grid = new VoxelGrid(10);
         Mesh mesh = new Mesh();
         ArrayList<Vector3f> positions = new ArrayList<Vector3f>();
 
+        // if in pre-computed mode, run marching cubes algorithm before entering loop
+        if (option == 2) {
+            // run marching cubes algorithm
+            positions = voxel_grid.create_grid();
+            // convert positions to float array
+            float[] vertices = new float[positions.size() * 3];
+            for (int i = 0; i < positions.size(); i++) {
+                vertices[i * 3] = positions.get(i).x;
+                vertices[i * 3 + 1] = positions.get(i).y;
+                vertices[i * 3 + 2] = positions.get(i).z;
+            }
+
+            mesh.updateVertices(vertices);
+            mesh.updateColors(vertices);
+        }
+
         int x = 0;
         int y = 0;
         int z = 0;
+
+        System.out.println("Use WASD and Mouse Drag to move the camera. Press ESC to exit.");
 
         // MAIN LOOP
         while (!glfwWindowShouldClose(window)) {
@@ -104,41 +125,44 @@ public class Main {
                 }
             }
 
-            if (x < resolution - 2) {
-                x++;
-            } else if (y < resolution - 2) {
-                x = 0;
-                y++;
-            } else if (z < resolution - 2) {
-                x = 0;
-                y = 0;
-                z++;
-            } else {
-                // break; if you want to exit program
+            // if in real-time mode, run marching cubes algorithm inside loop
+            if (option == 1) {
+                if (x < resolution - 2) {
+                    x++;
+                } else if (y < resolution - 2) {
+                    x = 0;
+                    y++;
+                } else if (z < resolution - 2) {
+                    x = 0;
+                    y = 0;
+                    z++;
+                } else {
+                    // break; if you want to exit program
 
-                // for restarting animation
-                x = 0;
-                y = 0;
-                z = 0;
-                positions = new ArrayList<Vector3f>();
+                    // for restarting animation
+                    x = 0;
+                    y = 0;
+                    z = 0;
+                    positions = new ArrayList<Vector3f>();
+                }
+
+                // run marching cubes algorithm
+                march_cube(x, y, z,
+                    voxel_grid,
+                    positions
+                );
+
+                // convert positions to float array
+                float[] vertices = new float[positions.size() * 3];
+                for (int i = 0; i < positions.size(); i++) {
+                    vertices[i * 3] = positions.get(i).x;
+                    vertices[i * 3 + 1] = positions.get(i).y;
+                    vertices[i * 3 + 2] = positions.get(i).z;
+                }
+
+                mesh.updateVertices(vertices);
+                mesh.updateColors(vertices);
             }
-
-            // run marching cubes algorithm
-            march_cube(x, y, z,
-                voxel_grid,
-                positions
-            );
-
-            // convert positions to float array
-            float[] vertices = new float[positions.size() * 3];
-            for (int i = 0; i < positions.size(); i++) {
-                vertices[i * 3] = positions.get(i).x;
-                vertices[i * 3 + 1] = positions.get(i).y;
-                vertices[i * 3 + 2] = positions.get(i).z;
-            }
-
-            mesh.updateVertices(vertices);
-            mesh.updateColors(vertices);
 
             // Set the camera position
             if (camera.pressedKeys[GLFW_KEY_W]) {
@@ -155,13 +179,9 @@ public class Main {
             }
             viewMatrix = camera.getViewMatrix();
             glUniformMatrix4fv(viewMatrixLocation, false, viewMatrix.get(new float[16]));
-            checkGLError();
 
             projectionMatrix = camera.getProjectionMatrix();
             glUniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix.get(new float[16]));
-            checkGLError();
-
-            // System.out.println("Set view and projection matrices successfully!");
 
             mesh.render(shaderProgram);
 
