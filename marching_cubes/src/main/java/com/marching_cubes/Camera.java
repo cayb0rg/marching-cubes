@@ -71,7 +71,7 @@ public class Camera {
     }
 
     public void keyCallback(long window, int key, int scancode, int action, int mods) {
-        System.out.println("Key: " + key + " Action: " + action + " Mods: " + mods);
+        // System.out.println("Key: " + key + " Action: " + action + " Mods: " + mods);
         if (key == GLFW_KEY_W && action == GLFW_PRESS) {
             pressedKeys[key] = true;
             walkForward(0.1f);
