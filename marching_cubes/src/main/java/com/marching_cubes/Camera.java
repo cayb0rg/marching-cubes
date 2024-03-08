@@ -1,7 +1,6 @@
 package com.marching_cubes;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -138,8 +137,8 @@ public class Camera {
 
 	public void walkForward(float distance)
 	{
-	    position.x -= distance * (float)Math.sin(Math.toRadians(yaw));
-	    position.y += distance * (float)Math.cos(Math.toRadians(yaw));
+	    position.x += distance * (float)Math.sin(Math.toRadians(yaw + 90.0));
+	    position.y -= distance * (float)Math.cos(Math.toRadians(yaw));
 	}
 
 	//moves the camera backward relative to its current rotation (yaw)
@@ -162,14 +161,4 @@ public class Camera {
 	    position.x -= distance * (float)Math.sin(Math.toRadians(yaw+90));
 	    position.y += distance * (float)Math.cos(Math.toRadians(yaw+90));
 	}
-
-    public void lookThrough()
-    {
-        //roatate the pitch around the X axis
-        glRotatef(pitch, 1.0f, 0.0f, 0.0f);
-        //roatate the yaw around the Y axis
-        glRotatef(yaw, 0.0f, 0.0f, 1.0f);
-        //translate to the position vector's location
-        glTranslatef(position.x, position.y, position.z);
-    }
 }
